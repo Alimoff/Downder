@@ -46,10 +46,14 @@ async def video(url):
 
     # audio = video["formats"][2]["url"]
 
-    video = video["formats"][-2]["url"]
+    video = video["formats"][-1]["url"]
     response = requests.get(video, allow_redirects=True)
 
-    open("video/video.mp4", "wb").write(response.content)
+    # f = open("video/video.mp4", "wb").write(response.content)
+    with open("video/video.mp4", "wb") as f:
+        for chunk in response.iter_content(chunk_size=1024 * 1024):
+            if chunk:
+                f.write(chunk)
 
     return True
 

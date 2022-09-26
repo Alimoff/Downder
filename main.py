@@ -1,5 +1,6 @@
 import logging
-
+import os
+from apis import audio, video
 from telegram import KeyboardButton, __version__ as TG_VER
 
 try:
@@ -29,9 +30,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-import os
+social_link = "https://www.youtube.com"
+social_link_ = "https://youtu.be/"
 
-from apis import audio, video
+TOKEN = "5751525487:AAGdkIMLYq9PXKpxHzcYMaDSwr5AsKu4f4k"
 
 ENTRY, MP3, VIDEO, MP3_HANDLER, VIDEO_HANDLER, END = range(6)
 
@@ -73,17 +75,13 @@ async def mp3(update: Update, context: ContextTypes):
     return MP3
 
 
-social_link = "https://www.youtube.com"
-social_link_ = "https://youtu.be/"
-
-
 async def mp3_handler(update: Update, context: ContextTypes):
 
     link = update.message.text
     context.user_data["choice"] = link
 
     if social_link in link or social_link_ in link:
-        await update.message.reply_text("Success! Searching...")
+        await update.message.reply_text("Be patient! Downloading...")
 
         response = await audio(link)
 
@@ -119,7 +117,7 @@ async def mp4_handler(update: Update, context: ContextTypes):
     context.user_data["choice"] = link
 
     if social_link in link or social_link_ in link:
-        await update.message.reply_text("Success! Searching...")
+        await update.message.reply_text("Be patient! Downloading...")
 
         response = await video(link)
 
@@ -141,22 +139,20 @@ async def mp4_handler(update: Update, context: ContextTypes):
 def main():
     """Run the bot"""
 
-    application = (
-        Application.builder()
-        .token("5751525487:AAEN2uq2QfyTNs4TchsnmIKCOQYQhb-qG5k")
-        .build()
-    )
+    application = Application.builder().token(TOKEN).build()
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
             ENTRY: [
                 MessageHandler(filters.Regex("^Mp3$"), mp3),
                 MessageHandler(filters.Regex("^Video$"), mp4),
+                CommandHandler("start", start),
+                CommandHandler("stop", stop),
             ],
             MP3: [MessageHandler(filters.TEXT & ~filters.COMMAND, mp3_handler)],
             VIDEO: [MessageHandler(filters.TEXT & ~filters.COMMAND, mp4_handler)],
         },
-        fallbacks=([CommandHandler("start", start)],),
+        fallbacks=([CommandHandler("stop", stop)],),
     )
 
     application.add_handler(conv_handler)
