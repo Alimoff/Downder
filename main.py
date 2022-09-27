@@ -31,7 +31,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 social_link = "https://www.youtube.com"
-social_link_ = "https://youtu.be/"
+social_link_ = "https://youtu.be"
+_social_link = "https://youtube.com"
+
+
+ytregex = r"^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$"
+
 
 TOKEN = "5751525487:AAGdkIMLYq9PXKpxHzcYMaDSwr5AsKu4f4k"
 
@@ -80,7 +85,7 @@ async def mp3_handler(update: Update, context: ContextTypes):
     link = update.message.text
     context.user_data["choice"] = link
 
-    if social_link in link or social_link_ in link:
+    if _social_link in link or social_link in link or social_link_ in link:
         await update.message.reply_text("Be patient! Downloading...")
 
         response = await audio(link)
@@ -116,7 +121,7 @@ async def mp4_handler(update: Update, context: ContextTypes):
     link = update.message.text
     context.user_data["choice"] = link
 
-    if social_link in link or social_link_ in link:
+    if _social_link in link or social_link in link or social_link_ in link:
         await update.message.reply_text("Be patient! Downloading...")
 
         response = await video(link)
@@ -139,7 +144,14 @@ async def mp4_handler(update: Update, context: ContextTypes):
 def main():
     """Run the bot"""
 
-    application = Application.builder().token(TOKEN).build()
+    application = (
+        Application.builder()
+        .token(TOKEN)
+        .read_timeout(7)
+        .get_updates_read_timeout(42)
+        .build()
+    )
+
     conv_handler = ConversationHandler(
         entry_points=[CommandHandler("start", start)],
         states={
